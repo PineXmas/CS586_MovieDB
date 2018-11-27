@@ -1,6 +1,11 @@
 package application;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -51,11 +56,17 @@ public class MovieDatabase {
 	
 	public static void main() {
 		MovieDatabase db = new MovieDatabase();
-		db.readJSONFile("E:\\Projects\\CS586_Movie_DB\\db\\info\\tt0042876.txt");
-
+		//db.connect();
+		db.populateDB("E:\\Projects\\CS586_Movie_DB\\db\\", "E:\\Projects\\CS586_Movie_DB\\db\\movie_id_list.txt");
+		//db.disconnect();
 	}
 	
-	Connection conn;
+	Connection conn = null;
+	ArrayList<Movie> listMovies = new ArrayList<>();
+	ArrayList<String> listActors = new ArrayList<>();
+	ArrayList<String> listDirectors = new ArrayList<>();
+	ArrayList<String> listWriters = new ArrayList<>();
+	ArrayList<String> listGenres = new ArrayList<>();
 
 	public MovieDatabase() {
 		
@@ -86,30 +97,8 @@ public class MovieDatabase {
 		}
 	}
 	
-	public void readJSONFile(String filePath) {
-		//JSON parser object to parse read file
-        JSONParser jsonParser = new JSONParser();
-         
-        try (FileReader reader = new FileReader(filePath))
-        {
-            //Read JSON file
-            Object obj = jsonParser.parse(reader);
- 
-            
-            
-            JSONArray employeeList = (JSONArray) obj;
-            System.out.println(employeeList);
-             
-            //Iterate over employee array
-            //employeeList.forEach( emp -> parseEmployeeObject( (JSONObject) emp ) );
- 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-	}
-	
 	//Populate database using data in the given directory. The directory should end with "/".
-	public void populateDB(String dataDir) {
+	public void populateDB(String dataDirPath, String movieListFilePath) {
 		/*
 		 * From the data, collect
 		 * - a list of actors
@@ -128,5 +117,75 @@ public class MovieDatabase {
 		 * 			table "ActorMovieRel"
 		 * 			table "GenreMovieRel"
 		 */
+		
+		try {
+			
+			//read all movies
+			System.out.println("Reading movie info files: ");
+			FileReader fileReader = new FileReader(movieListFilePath);
+			BufferedReader reader = new BufferedReader(fileReader);
+			String movieID;
+			int nMovies = 0;
+			int nBads = 0;
+			listMovies.clear();
+			while ((movieID = reader.readLine()) != null) {
+				Movie movie = new Movie(dataDirPath+"info/"+movieID+".txt", movieID);
+				
+				if (!movie.isBadMovie) {
+					listMovies.add(movie);
+				} else {
+					nBads++;
+				}
+				
+				nMovies++;
+				System.out.println("  " + nMovies + ": " + movieID);
+			}
+			reader.close();
+			fileReader.close();
+			System.out.println(" done");
+			System.out.println("Bad movies = " + nBads);
+			
+			//collect sets of: actors, directors, genres, writers
+			System.out.print("Collecting sets... ");
+			listActors.clear();
+			listDirectors.clear();
+			listWriters.clear();
+			listGenres.clear();
+			Movie.collectSets(listMovies, listActors, listWriters, listGenres, listDirectors);
+			System.out.println("done");
+			
+			//check connection to continue
+			if (conn==null) {
+				System.out.println("DB connection is not established. Stop populating.");
+				return;
+			}
+			if (conn.isClosed()) {
+				System.out.println("DB connection is closed. Stop populating.");
+				return;
+			}
+			
+			//drop all tables before inserting new instances
+			
+			//insert table "genre"
+			
+			//insert table "actor"
+			
+			//insert table "director"
+			
+			//insert table "writer"
+			
+			//insert table "movie"
+			
+			//insert table "MovieGenreRel"
+			
+			//insert table "MovieActorRel"
+			
+			//insert table "MovieDirectorRel"
+			
+			//insert table "MovieWriterRel"
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

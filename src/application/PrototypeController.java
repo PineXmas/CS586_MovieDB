@@ -9,6 +9,7 @@ import java.sql.Statement;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 
 public class PrototypeController {
 	static String hostURL = "DBCLASS.cs.pdx.edu";
@@ -18,7 +19,7 @@ public class PrototypeController {
 	static String schema = "movie";
 	
 	public Button btnGet;
-	public TableView<String> tableGenre;
+	public TextArea txtResult;
 	
 	public void onBtnGet_Click(ActionEvent event) {
 		try  {
@@ -27,11 +28,13 @@ public class PrototypeController {
 
 			//perform a query
 			Statement statement = conn.createStatement();
-			ResultSet resultSet = statement.executeQuery("SELECT * FROM movieDB.Genre;");
+			ResultSet resultSet = statement.executeQuery("SELECT * FROM movie.genre;");
 			
 			//display queried results
+			int i = 0;
 			while (resultSet.next()) {
-				System.out.printf("Name = %s, Desc. = %s\n", resultSet.getString("genre_name"), resultSet.getString("description"));
+				i++;
+				txtResult.appendText( String.format(  "%d/\nName = %s\n Desc. = %s\n\n", i, resultSet.getString("genre_name"), resultSet.getString("description")));
 			}
 
 			conn.close();
