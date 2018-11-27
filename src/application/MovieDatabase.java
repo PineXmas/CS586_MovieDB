@@ -22,7 +22,7 @@ public class MovieDatabase {
 	static String dbName = "f18wdb10";
 	static String userName = "f18wdb10";
 	static String password = "ekc2Dd#f8r";
-	static String schema = "movieDB";
+	static String schema = "movie";
 	
 	public static void example02() {
 		try  {
