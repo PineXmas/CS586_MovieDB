@@ -4,8 +4,12 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -33,6 +37,8 @@ public class MovieDatabase {
 	static String userName = "f18wdb10";
 	static String password = "ekc2Dd#f8r";
 	static String schema = "movie";
+	static String dbDir = "G:\\ThongDoan\\Projects\\CS586_MovieDB\\db\\";
+	static String creationQueryFile = "createQueries_UTF8.txt";
 	
 	public static void example02() {
 		try  {
@@ -66,8 +72,22 @@ public class MovieDatabase {
 	public static void main(String[] args) {
 		MovieDatabase db = new MovieDatabase();
 		db.connect();
-		db.populateDB("E:\\Projects\\CS586_Movie_DB\\db\\", "E:\\Projects\\CS586_Movie_DB\\db\\movie_id_list.txt");
+		String creationQueries = db.populateDB(dbDir, dbDir + "movie_id_list.txt");
 		db.disconnect();
+		
+		//write create queries to file
+		try {
+			System.out.print("Write creation-queries to file ...");
+			//FileWriter fileWriter = new FileWriter(creationQueryFile);
+			OutputStreamWriter fileWriter =
+		             new OutputStreamWriter(new FileOutputStream(creationQueryFile), StandardCharsets.UTF_8);
+		    
+			fileWriter.write(creationQueries);
+			fileWriter.close();
+			System.out.println("done");
+		} catch (Exception e) {
+			System.out.println("Error while writing creation-queries to file.");
+		}
 	}
 	
 	Connection conn = null;
@@ -146,8 +166,9 @@ public class MovieDatabase {
 	 * Populate database using data in the given directory. The directory should end with "/".
 	 * @param dataDirPath
 	 * @param movieListFilePath
+	 * @return the query using to populate the database
 	 */
-	public void populateDB(String dataDirPath, String movieListFilePath) {
+	public String populateDB(String dataDirPath, String movieListFilePath) {
 		/*
 		 * From the data, collect
 		 * - a list of actors
@@ -165,6 +186,8 @@ public class MovieDatabase {
 		 * 		- insert:
 		 * 			table "ActorMovieRel"
 		 * 			table "GenreMovieRel"
+		 * 			table "DirectorMovieRel"
+		 * 			table "WriterMovieRel"
 		 */
 		
 		try {
@@ -205,18 +228,20 @@ public class MovieDatabase {
 			
 			//drop all tables before inserting new instances
 			String query;
+			String allQueries = "";
 			query = ""
-					+ "DROP TABLE IF EXISTS movie.genre;"
-					+ "DROP TABLE IF EXISTS movie.actor;"
-					+ "DROP TABLE IF EXISTS movie.director;"
-					+ "DROP TABLE IF EXISTS movie.writer;"
-					+ "DROP TABLE IF EXISTS movie.movie;"
-					+ "DROP TABLE IF EXISTS movie.movieGenreRel;"
-					+ "DROP TABLE IF EXISTS movie.movieActorRel;"
-					+ "DROP TABLE IF EXISTS movie.movieDirectorRel;"
-					+ "DROP TABLE IF EXISTS movie.movieWriterRel;";
+					+ "DROP TABLE IF EXISTS movie.genre;\n"
+					+ "DROP TABLE IF EXISTS movie.actor;\n"
+					+ "DROP TABLE IF EXISTS movie.director;\n"
+					+ "DROP TABLE IF EXISTS movie.writer;\n"
+					+ "DROP TABLE IF EXISTS movie.movie;\n"
+					+ "DROP TABLE IF EXISTS movie.movieGenreRel;\n"
+					+ "DROP TABLE IF EXISTS movie.movieActorRel;\n"
+					+ "DROP TABLE IF EXISTS movie.movieDirectorRel;\n"
+					+ "DROP TABLE IF EXISTS movie.movieWriterRel;\n";
 			System.out.print("Dropping tables...");
 			executeUpdate(query);
+			allQueries += query;
 			System.out.println("done");
 			
 			//create all 9 tables
@@ -262,33 +287,161 @@ public class MovieDatabase {
 					+ ");";
 			query = "";
 			for (String q : queryCreateTables) {
-				query += q;
+				query += q + "\n";
 			}
 			
 			System.out.print("Creating tables...");
 			executeUpdate(query);
+			allQueries += query;
 			System.out.println("done");
 			
 			//insert table "genre"
+			query = genInsertQuery("genre", "genre_name", listGenres);
+			System.out.print("Insert into table 'genre'...");
+			executeUpdate(query);
+			allQueries += query;
+			System.out.println("done");			
 			
 			//insert table "actor"
+			query = genInsertQuery("actor", "actor_name", listActors);
+			System.out.print("Insert into table 'actor'...");
+			executeUpdate(query);
+			allQueries += query;
+			System.out.println("done");
 			
 			//insert table "director"
+			query = genInsertQuery("director", "director_name", listDirectors);
+			System.out.print("Insert into table 'director'...");
+			executeUpdate(query);
+			allQueries += query;
+			System.out.println("done");
 			
 			//insert table "writer"
+			query = genInsertQuery("writer", "writer_name", listWriters);
+			System.out.print("Insert into table 'writer'...");
+			executeUpdate(query);
+			allQueries += query;
+			System.out.println("done");
 			
 			//insert table "movie"
+			query = genInsertQuery(listMovies);
+			System.out.print("Insert into table 'movie'...");
+			executeUpdate(query);
+			allQueries += query;
+			System.out.println("done");
 			
 			//insert table "MovieGenreRel"
+			query = genInsertQuery_MovieGenreRel(listMovies);
+			System.out.print("Insert into table 'movieGenreRel'...");
+			executeUpdate(query);
+			allQueries += query;
+			System.out.println("done");
 			
 			//insert table "MovieActorRel"
+			query = genInsertQuery_MovieActorRel(listMovies);
+			System.out.print("Insert into table 'movieActorRel'...");
+			executeUpdate(query);
+			allQueries += query;
+			System.out.println("done");
 			
 			//insert table "MovieDirectorRel"
+			query = genInsertQuery_MovieDirectorRel(listMovies);
+			System.out.print("Insert into table 'movieDirectorRel'...");
+			executeUpdate(query);
+			allQueries += query;
+			System.out.println("done");
 			
 			//insert table "MovieWriterRel"
+			query = genInsertQuery_MovieWriterRel(listMovies);
+			System.out.print("Insert into table 'movieMovieRel'...");
+			executeUpdate(query);
+			allQueries += query;
+			System.out.println("done");
 			
+			
+			return allQueries;
 		} catch (Exception e) {
 			e.printStackTrace();
+			return null;
 		}
+	}
+
+	public String genInsertQuery_MovieGenreRel(ArrayList<Movie> listMovies) {
+		String query = "INSERT INTO movie.movieGenreRel (movie_id, genre_name) VALUES";
+		for (Movie movie : listMovies) {
+			String[] arr =movie.genInsertQuery_MovieRel(movie.arrGenres);
+			for (String valueTuple : arr) {
+				query += "    " + valueTuple + ",\n";
+			}
+		}
+		
+		query = query.substring(0, query.lastIndexOf(","));
+		query += ";\n";
+		return query;
+	}
+
+	public String genInsertQuery_MovieActorRel(ArrayList<Movie> listMovies) {
+		String query = "INSERT INTO movie.movieActorRel (movie_id, actor_name) VALUES";
+		for (Movie movie : listMovies) {
+			String[] arr =movie.genInsertQuery_MovieRel(movie.arrActors);
+			for (String valueTuple : arr) {
+				query += "    " + valueTuple + ",\n";
+			}
+		}
+		
+		query = query.substring(0, query.lastIndexOf(","));
+		query += ";\n";
+		return query;
+	}
+	
+	public String genInsertQuery_MovieDirectorRel(ArrayList<Movie> listMovies) {
+		String query = "INSERT INTO movie.movieDirectorRel (movie_id, director_name) VALUES";
+		for (Movie movie : listMovies) {
+			String[] arr =movie.genInsertQuery_MovieRel(movie.arrDirectors);
+			for (String valueTuple : arr) {
+				query += "    " + valueTuple + ",\n";
+			}
+		}
+		
+		query = query.substring(0, query.lastIndexOf(","));
+		query += ";\n";
+		return query;
+	}
+	
+	public String genInsertQuery_MovieWriterRel(ArrayList<Movie> listMovies) {
+		String query = "INSERT INTO movie.movieWriterRel (movie_id, writer_name) VALUES";
+		for (Movie movie : listMovies) {
+			String[] arr =movie.genInsertQuery_MovieRel(movie.arrWriters);
+			for (String valueTuple : arr) {
+				query += "    " + valueTuple + ",\n";
+			}
+		}
+		
+		query = query.substring(0, query.lastIndexOf(","));
+		query += ";\n";
+		return query;
+	}
+	
+	public String genInsertQuery(String tableName, String attributeName, ArrayList<String> listValues) {
+		String query;
+		query = "INSERT INTO movie." + tableName + " (" + attributeName + ")"
+				+ "\nVALUES\n";
+		for (String value : listValues) {
+			query += "    ('" + value + "'),\n";
+		}
+		query = query.substring(0, query.lastIndexOf(","));
+		query += ";\n";
+		return query;
+	}
+
+	public String genInsertQuery(ArrayList<Movie> listMovies) {
+		String query = "INSERT INTO movie.movie (movie_id, title, story, poster_url, year, runtime, rating) VALUES";
+		for (Movie movie : listMovies) {
+			query += "    " + movie.genInsertQuery() + ",\n";
+		}
+		
+		query = query.substring(0, query.lastIndexOf(","));
+		query += ";\n";
+		return query;
 	}
 }

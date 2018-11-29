@@ -102,10 +102,70 @@ public class Movie {
             //actor
             arrActors = parseActors((JSONArray)obj.get("cast"));
             
+            //** POST PROCESS
+            
+            title = postProcessTitle();
+            
+            //escape single-quote-characters
+            arrGenres = escapeSingleQuote(arrGenres);
+            arrActors = escapeSingleQuote(arrActors);
+            arrDirectors = escapeSingleQuote(arrDirectors);
+            arrWriters = escapeSingleQuote(arrWriters);
+            title = escapeSingleQuote(title);
+            story = escapeSingleQuote(story);
+            posterURL = escapeSingleQuote(posterURL);
+            
         } catch (Exception e) {
-            System.out.println(e.toString());
+            //System.out.println(e.toString());
             isBadMovie = true;
         }
+	}
+
+	/**
+	 * Remove year info out of the given title. For example: "Deadpool 2 (2018)" will become "Deadpool 2"
+	 */
+	public String postProcessTitle() {
+		String wannaFind = "(" + year + ")";
+		int pos = title.indexOf(wannaFind);
+		return title.substring(0, pos).trim();
+	}
+	
+	/**
+	 * Return a string ready to be used in the INSERT query, following this order
+	 * 				movie_ID varchar
+					title varchar
+					story varchar
+					poster_URL varchar
+					year integer
+					runtime integer
+					rating real
+	 * @return
+	 */
+	public String genInsertQuery() {
+		return "("
+				+ "'" + movieID + "',"
+				+ "'" + title + "',"
+				+ "'" + story + "',"
+				+ "'" + posterURL + "',"
+				+ year + ","
+				+ runtime + ","
+				+ rating
+				+ ")";
+	}
+	
+	/**
+	 * Return tuples of form (movie_id, value) to be ready for insert into relational-table for the given attribute.
+	 * @param arrValues
+	 * @return
+	 */
+	public String[] genInsertQuery_MovieRel(String[] arrValues) {
+		String[] queries = new String[arrValues.length];
+		
+		for (int i = 0; i < queries.length; i++) {
+			queries[i] = "('" + movieID + "', '" + arrValues[i] + "')";
+		}
+		
+		return queries;
 	}
 	
 	public static void collectSets(ArrayList<Movie> listMovies, ArrayList<String> listActors, ArrayList<String> listWriters, ArrayList<String> listGenres, ArrayList<String> listDirectors) {
@@ -131,6 +191,23 @@ public class Movie {
 		listWriters.addAll(setWriters);
 		listGenres.clear();
 		listGenres.addAll(setGenres);
+	}
+	
+	public static String escapeSingleQuote(String s) {
+		if (!s.contains("'")) {
+			return s;
+		}
+		
+		return s.replace("'", "''");
+	}
+	
+	public static String[] escapeSingleQuote(String[] arr) {
+		for (int i = 0; i < arr.length; i++) {
+			
+			arr[i] = escapeSingleQuote(arr[i]);
+		}
+		
+		return arr;
 	}
 	
 	public static String[] parseJSONStringArray(JSONArray arrJSON) {
