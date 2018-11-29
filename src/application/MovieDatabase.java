@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
@@ -22,6 +23,10 @@ import org.json.simple.parser.JSONParser;
  */
 
 public class MovieDatabase {
+	
+	/***************************************************************************
+	 * STATIC
+	 ***************************************************************************/
 	
 	static String hostURL = "DBCLASS.cs.pdx.edu";
 	static String dbName = "f18wdb10";
@@ -53,12 +58,16 @@ public class MovieDatabase {
 			e.printStackTrace();
 		}
 	}
+
+	/***************************************************************************
+	 * MEMBERS
+	 ***************************************************************************/
 	
-	public static void main() {
+	public static void main(String[] args) {
 		MovieDatabase db = new MovieDatabase();
-		//db.connect();
+		db.connect();
 		db.populateDB("E:\\Projects\\CS586_Movie_DB\\db\\", "E:\\Projects\\CS586_Movie_DB\\db\\movie_id_list.txt");
-		//db.disconnect();
+		db.disconnect();
 	}
 	
 	Connection conn = null;
@@ -71,6 +80,41 @@ public class MovieDatabase {
 	public MovieDatabase() {
 		
 	}
+	
+	public ResultSet executeQuery(String query) {
+		if (conn == null) {
+			System.out.println("Connection is null. Skip running query.");
+			return null;
+		}
+		
+		try {
+			Statement stmn = conn.createStatement();
+			return stmn.executeQuery(query);
+		} catch (SQLException e) {
+			System.out.println("Error run query: " + e.getMessage());
+			System.out.println(query);
+		}
+		
+		return null;
+	}
+	
+	public int executeUpdate(String query) {
+		if (conn == null) {
+			System.out.println("Connection is null. Skip running query.");
+			return -1;
+		}
+		
+		try {
+			Statement stmn = conn.createStatement();
+			return stmn.executeUpdate(query);
+		} catch (SQLException e) {
+			System.out.println("Error run query: " + e.getMessage());
+			System.out.println(query);
+		}
+		
+		return -1;
+	}
+	
 	
 	public void connect() {
 		try  {
@@ -91,13 +135,18 @@ public class MovieDatabase {
 			}
 			
 			conn.close();
+			System.out.println("Disconnected from PostgreSQL database!");
 		} catch (SQLException e) {
 			System.out.println("Error: could not close connection.");
 			e.printStackTrace();
 		}
 	}
 	
-	//Populate database using data in the given directory. The directory should end with "/".
+	/**
+	 * Populate database using data in the given directory. The directory should end with "/".
+	 * @param dataDirPath
+	 * @param movieListFilePath
+	 */
 	public void populateDB(String dataDirPath, String movieListFilePath) {
 		/*
 		 * From the data, collect
@@ -154,17 +203,71 @@ public class MovieDatabase {
 			Movie.collectSets(listMovies, listActors, listWriters, listGenres, listDirectors);
 			System.out.println("done");
 			
-			//check connection to continue
-			if (conn==null) {
-				System.out.println("DB connection is not established. Stop populating.");
-				return;
-			}
-			if (conn.isClosed()) {
-				System.out.println("DB connection is closed. Stop populating.");
-				return;
+			//drop all tables before inserting new instances
+			String query;
+			query = ""
+					+ "DROP TABLE IF EXISTS movie.genre;"
+					+ "DROP TABLE IF EXISTS movie.actor;"
+					+ "DROP TABLE IF EXISTS movie.director;"
+					+ "DROP TABLE IF EXISTS movie.writer;"
+					+ "DROP TABLE IF EXISTS movie.movie;"
+					+ "DROP TABLE IF EXISTS movie.movieGenreRel;"
+					+ "DROP TABLE IF EXISTS movie.movieActorRel;"
+					+ "DROP TABLE IF EXISTS movie.movieDirectorRel;"
+					+ "DROP TABLE IF EXISTS movie.movieWriterRel;";
+			System.out.print("Dropping tables...");
+			executeUpdate(query);
+			System.out.println("done");
+			
+			//create all 9 tables
+			String[] queryCreateTables = new String[9];
+			Arrays.fill(queryCreateTables, "");
+			queryCreateTables[0] = "CREATE TABLE movie.genre ("
+					+ "genre_name varchar PRIMARY KEY,"
+					+ "description varchar"
+					+ ");";
+			queryCreateTables[1] = "CREATE TABLE movie.actor ("
+					+ "actor_name varchar PRIMARY KEY"
+					+ ");";
+			queryCreateTables[2] = "CREATE TABLE movie.director ("
+					+ "director_name varchar PRIMARY KEY"
+					+ ");";
+			queryCreateTables[3] = "CREATE TABLE movie.writer ("
+					+ "writer_name varchar PRIMARY KEY"
+					+ ");";
+			queryCreateTables[4] = "CREATE TABLE movie.movie ("
+					+ "movie_ID varchar PRIMARY KEY,"
+					+ "title varchar,"
+					+ "story varchar,"
+					+ "poster_URL varchar,"
+					+ "year integer,"
+					+ "runtime integer,"
+					+ "rating real"
+					+ ");";
+			queryCreateTables[5] = "CREATE TABLE movie.movieGenreRel ("
+					+ "movie_ID varchar,"
+					+ "genre_name varchar"
+					+ ");";
+			queryCreateTables[6] = "CREATE TABLE movie.movieActorRel ("
+					+ "movie_ID varchar,"
+					+ "actor_name varchar"
+					+ ");";
+			queryCreateTables[7] = "CREATE TABLE movie.movieDirectorRel ("
+					+ "movie_ID varchar,"
+					+ "director_name varchar"
+					+ ");";
+			queryCreateTables[8] = "CREATE TABLE movie.movieWriterRel ("
+					+ "movie_ID varchar,"
+					+ "writer_name varchar"
+					+ ");";
+			query = "";
+			for (String q : queryCreateTables) {
+				query += q;
 			}
 			
-			//drop all tables before inserting new instances
+			System.out.print("Creating tables...");
+			executeUpdate(query);
+			System.out.println("done");
 			
 			//insert table "genre"
 			
