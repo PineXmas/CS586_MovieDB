@@ -1,7 +1,5 @@
 package application;
 	
-import java.io.FileInputStream;
-
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -30,13 +28,9 @@ public class Main extends Application {
 			Parent root = FXMLLoader.load(getClass().getResource("mainUI.fxml"));
 			
 			Scene scene = new Scene(root);
-//			scene.getStylesheets().add(Main.class.getResource("bootstrap3.css").toExternalForm());
 			scene.getStylesheets().add(Main.class.getResource("dark_modena.css").toExternalForm());
-//			scene.getStylesheets().add(Main.class.getResource("material.css").toExternalForm());
 			
-			FileInputStream fileInputStream = new FileInputStream("src/application/popcorn.png");
-			primaryStage.getIcons().add(new Image(fileInputStream));
-			
+			primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("popcorn.png")));
 			primaryStage.setScene(scene);
 			primaryStage.setTitle("MovieDB");
 			primaryStage.show();
