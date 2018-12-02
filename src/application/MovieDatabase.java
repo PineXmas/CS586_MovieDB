@@ -72,10 +72,28 @@ public class MovieDatabase {
 	public static void main(String[] args) {
 		MovieDatabase db = new MovieDatabase();
 		db.connect();
-		String creationQueries = db.populateDB(dbDir, dbDir + "movie_id_list.txt");
+
+		/**
+		 * POPULATE
+		 */
+		
+		//TODO (note) do this once & comment out
+		
+//		//populate & write queries to file for backup
+//		String creationQueries = db.populateDB(dbDir, dbDir + "movie_id_list.txt");
+//		write2File(creationQueries);
+		
+		/**
+		 * TEST 20 QUERIES
+		 */
+		
+		
 		db.disconnect();
 		
-		//write create queries to file
+
+	}
+
+	public static void write2File(String creationQueries) {
 		try {
 			System.out.print("Write creation-queries to file ...");
 			//FileWriter fileWriter = new FileWriter(creationQueryFile);
@@ -134,7 +152,6 @@ public class MovieDatabase {
 		
 		return -1;
 	}
-	
 	
 	public void connect() {
 		try  {
@@ -443,5 +460,430 @@ public class MovieDatabase {
 		query = query.substring(0, query.lastIndexOf(","));
 		query += ";\n";
 		return query;
+	}
+
+
+	/************************************************************************************************
+	 * THE 20 QUERIES
+	 ************************************************************************************************/
+
+	/*
+	 * NOTES:
+	 * %M: movie title
+	 * %A: actor name
+	 * %D: director name
+	 * %G: genre name
+	 * XXXX: year
+	 */
+	
+	/**
+1/
+SELECT actor_name
+FROM movie.movie NATURAL JOIN movie.movieactorrel
+WHERE UPPER(title) = UPPER('$M')
+
+	 */
+	public String genQuery01(String movieTitle) {
+		return "SELECT actor_name\r\n" + 
+				"FROM movie.movie NATURAL JOIN movie.movieactorrel\r\n" + 
+				"WHERE UPPER(title) = UPPER('" + movieTitle + "')";
+	}
+	
+	/**
+2/
+SELECT actor_name, COUNT(*) as movie_count
+FROM movie.movie NATURAL JOIN movie.movieactorrel
+GROUP BY actor_name
+HAVING COUNT(*) >= ALL
+(
+SELECT COUNT(*)
+FROM movie.movie NATURAL JOIN movie.movieactorrel
+GROUP BY actor_name
+)
+
+	 */
+	public String genQuery02() {
+		return "SELECT actor_name, COUNT(*) as movie_count\r\n" + 
+				"FROM movie.movie NATURAL JOIN movie.movieactorrel\r\n" + 
+				"GROUP BY actor_name\r\n" + 
+				"HAVING COUNT(*) >= ALL\r\n" + 
+				"(\r\n" + 
+				"SELECT COUNT(*)\r\n" + 
+				"FROM movie.movie NATURAL JOIN movie.movieactorrel\r\n" + 
+				"GROUP BY actor_name\r\n" + 
+				")";
+	}
+
+	/**
+3/
+SELECT title, year
+FROM movie.movie NATURAL JOIN movie.movieactorrel
+WHERE UPPER(actor_name) = UPPER('$A')
+
+	 */
+	public String genQuery03(String actorName) {
+		return "SELECT title, year\r\n" + 
+				"FROM movie.movie NATURAL JOIN movie.movieactorrel\r\n" + 
+				"WHERE UPPER(actor_name) = UPPER('" + actorName + "')";
+	}
+	
+	/**
+4/
+SELECT title, year, genre_name, rating
+FROM (movie.movie NATURAL JOIN movie.moviegenrerel) NATURAL JOIN movie.movieactorrel
+WHERE UPPER(genre_name) = UPPER('$G') AND UPPER(actor_name) = UPPER('$A') AND rating > 8
+ORDER BY rating DESC
+
+	 */
+	public String genQuery04(String genreName, String actorName) {
+		return "SELECT title, year, genre_name, rating\r\n" + 
+				"FROM (movie.movie NATURAL JOIN movie.moviegenrerel) NATURAL JOIN movie.movieactorrel\r\n" + 
+				"WHERE UPPER(genre_name) = UPPER('" + genreName + "') AND UPPER(actor_name) = UPPER('" + actorName +  "') AND rating > 8\r\n" + 
+				"ORDER BY rating DESC";
+	}
+	
+	/**
+5/
+SELECT title, rating
+FROM movie.movie NATURAL JOIN movie.movieactorrel
+WHERE UPPER(actor_name) = UPPER('$A')
+AND rating = 
+(
+SELECT MAX(rating)
+FROM movie.movie NATURAL JOIN movie.movieactorrel
+WHERE UPPER(actor_name) = UPPER('$A')
+)
+
+	 */
+	public String genQuery05(String actorName) {
+		return "SELECT title, rating\r\n" + 
+				"FROM movie.movie NATURAL JOIN movie.movieactorrel\r\n" + 
+				"WHERE UPPER(actor_name) = UPPER('" + actorName + "')\r\n" + 
+				"AND rating = \r\n" + 
+				"(\r\n" + 
+				"SELECT MAX(rating)\r\n" + 
+				"FROM movie.movie NATURAL JOIN movie.movieactorrel\r\n" + 
+				"WHERE UPPER(actor_name) = UPPER('" + actorName + "')\r\n" + 
+				")";
+	}
+	
+	/**
+6/
+SELECT B.actor_name, COUNT(DISTINCT A.movie_id) as times_of_coplaying
+FROM movie.movieactorrel A, movie.movieactorrel B
+WHERE A.movie_id = B.movie_id AND UPPER(A.actor_name) = UPPER('$A') AND UPPER(B.actor_name) <> UPPER('$A')
+GROUP BY (A.actor_name, B.actor_name)
+HAVING COUNT(DISTINCT A.movie_id) >= ALL
+(
+SELECT COUNT(DISTINCT A.movie_id) as times_of_coplaying
+FROM movie.movieactorrel A, movie.movieactorrel B
+WHERE A.movie_id = B.movie_id AND UPPER(A.actor_name) = UPPER('$A') AND UPPER(B.actor_name) <> UPPER('$A')
+GROUP BY (A.actor_name, B.actor_name)
+)
+
+
+	 */
+	public String genQuery06(String actorName) {
+		return "SELECT B.actor_name, COUNT(DISTINCT A.movie_id) as times_of_coplaying\r\n" + 
+				"FROM movie.movieactorrel A, movie.movieactorrel B\r\n" + 
+				"WHERE A.movie_id = B.movie_id AND UPPER(A.actor_name) = UPPER('"  +actorName + "') AND UPPER(B.actor_name) <> UPPER('" + actorName + "')\r\n" + 
+				"GROUP BY (A.actor_name, B.actor_name)\r\n" + 
+				"HAVING COUNT(DISTINCT A.movie_id) >= ALL\r\n" + 
+				"(\r\n" + 
+				"SELECT COUNT(DISTINCT A.movie_id) as times_of_coplaying\r\n" + 
+				"FROM movie.movieactorrel A, movie.movieactorrel B\r\n" + 
+				"WHERE A.movie_id = B.movie_id AND UPPER(A.actor_name) = UPPER('" + actorName +  "') AND UPPER(B.actor_name) <> UPPER('" + actorName + "')\r\n" + 
+				"GROUP BY (A.actor_name, B.actor_name)\r\n" + 
+				")";
+	}
+	
+	/**
+7/ Who usually appears in good movies? (at least 7 average rating with and play at least 8 movies)
+
+SELECT actor_name, AVG(rating) as average_movie_rating, COUNT(movie_id) as movie_counts
+FROM movie.movieactorrel NATURAL JOIN movie.movie
+GROUP BY actor_name
+HAVING COUNT(movie_id) >= 8 AND AVG(rating) > 7
+ORDER BY AVG(rating) DESC
+
+
+	 */
+	public String genQuery07() {
+		return "SELECT actor_name, AVG(rating) as average_movie_rating, COUNT(movie_id) as movie_counts\r\n" + 
+				"FROM movie.movieactorrel NATURAL JOIN movie.movie\r\n" + 
+				"GROUP BY actor_name\r\n" + 
+				"HAVING COUNT(movie_id) >= 8 AND AVG(rating) > 7\r\n" + 
+				"ORDER BY AVG(rating) DESC";
+	}
+	
+	/**
+8/ 
+SELECT actor_name, COUNT(movie_id)
+FROM movie.movie NATURAL JOIN movie.movieactorrel
+WHERE year = XXXX
+GROUP BY actor_name
+HAVING COUNT(movie_id) >= ALL
+(
+SELECT COUNT(movie_id)
+FROM movie.movie NATURAL JOIN movie.movieactorrel
+WHERE year = XXXX
+GROUP BY actor_name
+)
+
+
+	 */
+	public String genQuery08(int year) {
+		return "SELECT actor_name, COUNT(movie_id)\r\n" + 
+				"FROM movie.movie NATURAL JOIN movie.movieactorrel\r\n" + 
+				"WHERE year = "+ year +  "\r\n" + 
+				"GROUP BY actor_name\r\n" + 
+				"HAVING COUNT(movie_id) >= ALL\r\n" + 
+				"(\r\n" + 
+				"SELECT COUNT(movie_id)\r\n" + 
+				"FROM movie.movie NATURAL JOIN movie.movieactorrel\r\n" + 
+				"WHERE year = " + year +  "\r\n" + 
+				"GROUP BY actor_name\r\n" + 
+				")";
+	}
+	
+	/**
+9/
+SELECT director_name
+FROM movie.movie NATURAL JOIN movie.moviedirectorrel
+WHERE UPPER(title) = UPPER('$M')
+
+
+	 */
+	public String genQuery09(String movieName) {
+		return "SELECT director_name\r\n" + 
+				"FROM movie.movie NATURAL JOIN movie.moviedirectorrel\r\n" + 
+				"WHERE UPPER(title) = UPPER('" +movieName+ "')";
+	}
+	
+	/**
+10/
+SELECT director_name, COUNT(movie_id)
+FROM movie.movie NATURAL JOIN movie.moviedirectorrel
+GROUP BY director_name
+HAVING COUNT(movie_id) >= ALL
+(
+SELECT COUNT(movie_id)
+FROM movie.movie NATURAL JOIN movie.moviedirectorrel
+GROUP BY director_name
+)
+
+
+	 */
+	public String genQuery10() {
+		return "SELECT director_name, COUNT(movie_id)\r\n" + 
+				"FROM movie.movie NATURAL JOIN movie.moviedirectorrel\r\n" + 
+				"GROUP BY director_name\r\n" + 
+				"HAVING COUNT(movie_id) >= ALL\r\n" + 
+				"(\r\n" + 
+				"SELECT COUNT(movie_id)\r\n" + 
+				"FROM movie.movie NATURAL JOIN movie.moviedirectorrel\r\n" + 
+				"GROUP BY director_name\r\n" + 
+				")";
+	}
+
+	/**
+11/
+SELECT title, year
+FROM movie.movie NATURAL JOIN movie.moviedirectorrel
+WHERE UPPER(director_name) = UPPER('$D')
+
+
+	 */	
+	public String genQuery11(String directorName) {
+		return "SELECT title, year\r\n" + 
+				"FROM movie.movie NATURAL JOIN movie.moviedirectorrel\r\n" + 
+				"WHERE UPPER(director_name) = UPPER('" +directorName+  "')";
+	}
+
+	/**
+12/
+SELECT title, year, genre_name, rating
+FROM (movie.movie NATURAL JOIN movie.moviegenrerel) NATURAL JOIN movie.moviedirectorrel
+WHERE UPPER(genre_name) = UPPER('$G') AND UPPER(director_name) = UPPER('$D') AND rating > 8
+ORDER BY rating DESC
+
+
+	 */
+	public String genQuery12(String genreName, String directorName) {
+		return "SELECT title, year, genre_name, rating\r\n" + 
+				"FROM (movie.movie NATURAL JOIN movie.moviegenrerel) NATURAL JOIN movie.moviedirectorrel\r\n" + 
+				"WHERE UPPER(genre_name) = UPPER('" + genreName +  "') AND UPPER(director_name) = UPPER('" +directorName +"') AND rating > 8\r\n" + 
+				"ORDER BY rating DESC";
+	}
+	
+	/**
+13/
+SELECT director_name, COUNT(movie_id), avg(rating)
+FROM movie.movie NATURAL JOIN movie.moviedirectorrel
+GROUP BY director_name
+HAVING COUNT(movie_id) >= 5 AND AVG(rating) >= ALL
+(
+SELECT AVG(rating)
+FROM movie.movie NATURAL JOIN movie.moviedirectorrel
+GROUP BY director_name
+HAVING COUNT(movie_id) >= 5
+)
+
+
+	 */
+	public String genQuery13() {
+		return "SELECT director_name, COUNT(movie_id), avg(rating)\r\n" + 
+				"FROM movie.movie NATURAL JOIN movie.moviedirectorrel\r\n" + 
+				"GROUP BY director_name\r\n" + 
+				"HAVING COUNT(movie_id) >= 5 AND AVG(rating) >= ALL\r\n" + 
+				"(\r\n" + 
+				"SELECT AVG(rating)\r\n" + 
+				"FROM movie.movie NATURAL JOIN movie.moviedirectorrel\r\n" + 
+				"GROUP BY director_name\r\n" + 
+				"HAVING COUNT(movie_id) >= 5\r\n" + 
+				")";
+	}
+	
+	/**
+14/
+SELECT writer_name, COUNT(movie_id), avg(rating)
+FROM movie.movie NATURAL JOIN movie.moviewriterrel
+GROUP BY writer_name
+HAVING COUNT(movie_id) >= 5 AND AVG(rating) >= ALL
+(
+SELECT AVG(rating)
+FROM movie.movie NATURAL JOIN movie.moviewriterrel
+GROUP BY writer_name
+HAVING COUNT(movie_id) >= 5
+)
+
+
+	 */
+	public String genQuery14() {
+		return "SELECT writer_name, COUNT(movie_id), avg(rating)\r\n" + 
+				"FROM movie.movie NATURAL JOIN movie.moviewriterrel\r\n" + 
+				"GROUP BY writer_name\r\n" + 
+				"HAVING COUNT(movie_id) >= 5 AND AVG(rating) >= ALL\r\n" + 
+				"(\r\n" + 
+				"SELECT AVG(rating)\r\n" + 
+				"FROM movie.movie NATURAL JOIN movie.moviewriterrel\r\n" + 
+				"GROUP BY writer_name\r\n" + 
+				"HAVING COUNT(movie_id) >= 5\r\n" + 
+				")";
+	}
+	
+	/**
+15/
+SELECT title, year, rating
+FROM movie.movie
+WHERE rating >= ALL
+(
+SELECT rating
+FROM movie.movie
+)
+
+
+	 */
+	public String genQuery15() {
+		return "SELECT title, year, rating\r\n" + 
+				"FROM movie.movie\r\n" + 
+				"WHERE rating >= ALL\r\n" + 
+				"(\r\n" + 
+				"SELECT rating\r\n" + 
+				"FROM movie.movie\r\n" + 
+				")";
+	}
+	
+	/**
+16/
+SELECT title, year, rating
+FROM movie.movie
+WHERE year = XXXX AND rating >= ALL
+(
+SELECT rating
+FROM movie.movie
+WHERE year = XXXX
+)
+
+
+	 */
+	public String genQuery16(int year) {
+		return "SELECT title, year, rating\r\n" + 
+				"FROM movie.movie\r\n" + 
+				"WHERE year = " + year + " AND rating >= ALL\r\n" + 
+				"(\r\n" + 
+				"SELECT rating\r\n" + 
+				"FROM movie.movie\r\n" + 
+				"WHERE year = " +year +"\r\n" + 
+				")";
+	}
+	
+	/**
+17/
+SELECT title, year, rating, runtime
+FROM movie.movie
+WHERE runtime <= X AND rating >= 8
+
+
+	 */
+	public String genQuery17(String mins) {
+		return "SELECT title, year, rating, runtime\r\n" + 
+				"FROM movie.movie\r\n" + 
+				"WHERE runtime <= " + mins +" AND rating >= 8";
+	}
+	
+	/**
+18/
+SELECT title, year, rating, genre_name
+FROM movie.movie NATURAL JOIN movie.moviegenrerel
+WHERE UPPER(genre_name) = UPPER('$G') AND rating >= 8
+
+
+	 */
+	public String genQuery18(String genreName) {
+		return "SELECT title, year, rating, genre_name\r\n" + 
+				"FROM movie.movie NATURAL JOIN movie.moviegenrerel\r\n" + 
+				"WHERE UPPER(genre_name) = UPPER('" +genreName + "') AND rating >= 8";
+	}
+	
+	/**
+19/
+SELECT runtime
+FROM movie.movie
+WHERE UPPER(title) = UPPER('$M')
+
+
+	 */
+	public String genQuery19(String movieName) {
+		return "SELECT runtime\r\n" + 
+				"FROM movie.movie\r\n" + 
+				"WHERE UPPER(title) = UPPER('" + movieName + "')";
+	}
+	
+	/**
+20/
+SELECT *
+FROM movie.movie
+WHERE
+UPPER(story) LIKE UPPER('%X%') AND
+...
+UPPER(story) LIKE UPPER('%X%')
+
+
+	 */
+	public String genQuery20(String[] arrKeywords) {
+		if (arrKeywords.length < 1) {
+			return "";
+		}
+		
+		String s= "SELECT *\r\n" + 
+				"FROM movie.movie\r\n" + 
+				"WHERE\r\n" + 
+				"UPPER(story) LIKE UPPER(' " + arrKeywords[0] + "')\r\n";
+		for (int i = 1; i < arrKeywords.length; i++) {
+			s += "AND UPPER(story) LIKE UPPER('" + arrKeywords[i] + "')\r\n";
+		}
+		
+		return s;
 	}
 }

@@ -11,6 +11,23 @@ import javafx.scene.layout.BorderPane;
 public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) {
+		startMainUI(primaryStage);
+	}
+
+	public void startMainUI(Stage primaryStage) {
+		try {
+			Parent root = FXMLLoader.load(getClass().getResource("mainUI.fxml"));
+			
+			Scene scene = new Scene(root);
+			
+			primaryStage.setScene(scene);
+			primaryStage.show();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void startPrototype(Stage primaryStage) {
 		try {
 			Parent root = FXMLLoader.load(getClass().getResource("prototype.fxml"));
 			
