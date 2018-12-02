@@ -1,19 +1,125 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import java.lang.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
 
-
-<AnchorPane prefHeight="544.0" prefWidth="513.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="application.MainUIController">
+<AnchorPane prefHeight="605.0" prefWidth="1001.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.MainUIController">
    <children>
-      <TableView fx:id="tableResult" layoutX="254.0" layoutY="15.0" prefHeight="515.0" prefWidth="245.0">
+      <TableView fx:id="tableResult" layoutX="589.0" layoutY="15.0" prefHeight="530.0" prefWidth="388.0">
         <columns>
-          <TableColumn prefWidth="75.0" text="C1" />
-          <TableColumn prefWidth="75.0" text="C2" />
         </columns>
       </TableView>
-      <Button fx:id="btnTest" layoutX="14.0" layoutY="505.0" mnemonicParsing="false" onAction="#onBtnTest_Click" prefHeight="25.0" prefWidth="70.0" text="Test" />
+      <Button fx:id="btnTest" layoutX="589.0" layoutY="555.0" mnemonicParsing="false" onAction="#onBtnTest_Click" prefHeight="28.0" prefWidth="122.0" styleClass="danger" text="Query" />
+      <GridPane alignment="CENTER_LEFT" layoutX="24.0" layoutY="17.0" prefHeight="566.0" prefWidth="537.0">
+        <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" maxWidth="256.0" minWidth="7.0" prefWidth="23.0" />
+          <ColumnConstraints hgrow="SOMETIMES" maxWidth="443.0" minWidth="10.0" prefWidth="316.0" />
+          <ColumnConstraints hgrow="SOMETIMES" maxWidth="225.0" minWidth="0.0" prefWidth="202.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+            <Label text="Who acts in the movie X?" GridPane.columnIndex="1" />
+            <RadioButton fx:id="radioQuestion1" mnemonicParsing="false">
+               <toggleGroup>
+                  <ToggleGroup fx:id="groupQuestions" />
+               </toggleGroup></RadioButton>
+            <RadioButton fx:id="radioQuestion2" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="1" />
+            <RadioButton fx:id="radioQuestion3" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="2" />
+            <RadioButton fx:id="radioQuestion4" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="3" />
+            <RadioButton fx:id="radioQuestion5" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="4" />
+            <RadioButton fx:id="radioQuestion6" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="5" />
+            <RadioButton fx:id="radioQuestion7" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="6" />
+            <RadioButton fx:id="radioQuestion8" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="7" />
+            <RadioButton fx:id="radioQuestion9" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="8" />
+            <RadioButton fx:id="radioQuestion10" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="9" />
+            <RadioButton fx:id="radioQuestion11" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="10" />
+            <RadioButton fx:id="radioQuestion12" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="11" />
+            <RadioButton fx:id="radioQuestion13" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="12" />
+            <RadioButton fx:id="radioQuestion14" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="13" />
+            <RadioButton fx:id="radioQuestion15" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="14" />
+            <RadioButton fx:id="radioQuestion16" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="15" />
+            <RadioButton fx:id="radioQuestion17" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="16" />
+            <RadioButton fx:id="radioQuestion18" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="17" />
+            <RadioButton fx:id="radioQuestion19" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="18" />
+            <RadioButton fx:id="radioQuestion20" mnemonicParsing="false" toggleGroup="$groupQuestions" GridPane.rowIndex="19" />
+            <Label text="Who plays the most movies?" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Label text="What movies actor X has ever played?" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <Label text="Can you recommend some X movies played by actor Y?" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            <Label text="What is the best movies ever played by actor X?" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+            <Label text="Who does the actor X usually plays with?" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+            <Label text="Who usually appears in good movies?" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+            <Label text="Who is the most active actor in year XXXX?" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+            <Label text="Who directs the movie X?" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+            <Label text="Who direct the most movies?" GridPane.columnIndex="1" GridPane.rowIndex="9" />
+            <Label text="What movies director X has ever directed?" GridPane.columnIndex="1" GridPane.rowIndex="10" />
+            <Label text="Can you recommend some X movies directed by Y?" GridPane.columnIndex="1" GridPane.rowIndex="11" />
+            <Label text="Who is the best director?" GridPane.columnIndex="1" GridPane.rowIndex="12" />
+            <Label text="Who is the best writer?" GridPane.columnIndex="1" GridPane.rowIndex="13" />
+            <Label text="What is the best movies ever?" GridPane.columnIndex="1" GridPane.rowIndex="14" />
+            <Label text="What is the best movies in year XXXX?" GridPane.columnIndex="1" GridPane.rowIndex="15" />
+            <Label text="Can you recommend some movies (less than X mins)?" GridPane.columnIndex="1" GridPane.rowIndex="16" />
+            <Label text="Can you recommend some best X movie?" GridPane.columnIndex="1" GridPane.rowIndex="17" />
+            <Label text="How long is that movie X?" GridPane.columnIndex="1" GridPane.rowIndex="18" />
+            <Label text="What is the movies relating to &quot;hero&quot;, &quot;galaxy&quot;, ... ?" GridPane.columnIndex="1" GridPane.rowIndex="19" />
+            <TextField fx:id="txtMovie1" promptText="movie" text="the dark knight" GridPane.columnIndex="2" />
+            <TextField fx:id="txtActor3" promptText="actor" text="scarlett johansson" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+            <TextField fx:id="txtActor5" promptText="actor" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+            <TextField fx:id="txtActor6" promptText="actor" GridPane.columnIndex="2" GridPane.rowIndex="5" />
+            <TextField fx:id="txtYear8" promptText="year" text="2016" GridPane.columnIndex="2" GridPane.rowIndex="7" />
+            <TextField fx:id="txtMovie9" promptText="movie" GridPane.columnIndex="2" GridPane.rowIndex="8" />
+            <TextField fx:id="txtDirector11" promptText="director" text="christopher nolan" GridPane.columnIndex="2" GridPane.rowIndex="10" />
+            <TextField fx:id="txtYear16" promptText="year" GridPane.columnIndex="2" GridPane.rowIndex="15" />
+            <TextField fx:id="txtMin17" promptText="minutes" text="75" GridPane.columnIndex="2" GridPane.rowIndex="16" />
+            <TextField fx:id="txtGenre18" promptText="genre" GridPane.columnIndex="2" GridPane.rowIndex="17" />
+            <TextField fx:id="txtMovie19" promptText="movie" GridPane.columnIndex="2" GridPane.rowIndex="18" />
+            <TextField fx:id="txtKeywords20" promptText="keyword #1, keyword #2, ..." text="hero, galaxy" GridPane.columnIndex="2" GridPane.rowIndex="19" />
+            <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="10.0" GridPane.columnIndex="2" GridPane.rowIndex="3">
+               <children>
+                  <TextField fx:id="txtGenre4" promptText="genre" text="action" />
+                  <TextField fx:id="txtActor4" promptText="actor" text="christian bale" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="10.0" GridPane.columnIndex="2" GridPane.rowIndex="11">
+               <children>
+                  <TextField fx:id="txtGenre12" promptText="genre" />
+                  <TextField fx:id="txtDirector12" promptText="director" />
+               </children>
+            </HBox>
+            <Label text="(at least avg rating = 7 and 8 movies)" GridPane.columnIndex="2" GridPane.rowIndex="6" />
+            <Label text="(must direct at least 5 movies)" GridPane.columnIndex="2" GridPane.rowIndex="12" />
+            <Label text="(must write at least 5 movies)" GridPane.columnIndex="2" GridPane.rowIndex="13" />
+         </children>
+      </GridPane>
+      <Label alignment="CENTER_RIGHT" layoutX="823.0" layoutY="549.0" prefHeight="38.0" prefWidth="152.0" text="by Thong Doan&#10;CS586 Project - Fall 2018" textAlignment="RIGHT" />
    </children>
 </AnchorPane>

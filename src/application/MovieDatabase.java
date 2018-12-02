@@ -1,13 +1,8 @@
 package application;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -18,8 +13,11 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.json.simple.JSONArray;
-import org.json.simple.parser.JSONParser;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 
 /*
  * https://howtodoinjava.com/json/json-simple-read-write-json-examples/
@@ -69,7 +67,7 @@ public class MovieDatabase {
 	 * MEMBERS
 	 ***************************************************************************/
 	
-	public static void main(String[] args) {
+	public static void main_temp(String[] args) {
 		MovieDatabase db = new MovieDatabase();
 		db.connect();
 
@@ -155,11 +153,12 @@ public class MovieDatabase {
 	
 	public void connect() {
 		try  {
+			System.out.print("Connecting to PostgreSQL database... ");
 			conn = DriverManager.getConnection("jdbc:postgresql://"+hostURL+"/" + dbName, userName, password);
-			System.out.println("Connected to PostgreSQL database!");
+			System.out.println("done");
 		} catch (SQLException e) {
 			conn = null;
-			System.out.println("Error: connection failure.");
+			System.out.println("Error while connecting to the database");
 			e.printStackTrace();
 		}
 	}
@@ -462,6 +461,82 @@ public class MovieDatabase {
 		return query;
 	}
 
+	public TableView<ArrayList<String>> convertResult2Table(ResultSet result) {
+		try {
+			
+			TableView<ArrayList<String>> tableResult = new TableView<ArrayList<String>>();
+			tableResult.getColumns().clear();
+			tableResult.getItems().clear();
+			
+			/**********************************
+			 * CONVERT RESULT 2 LISTS
+			 **********************************/
+			ArrayList<ArrayList<String>> listRows = new ArrayList<>();
+			ArrayList<String> listColNames = new ArrayList<>();
+			convertResult2ArrayList(result, listRows, listColNames);
+
+			/**********************************
+			 * TABLE COLUMN
+			 **********************************/
+
+			for (int i = 0; i < listColNames.size(); i++) {
+				final int j = i;
+				TableColumn<ArrayList<String>, String> col = new TableColumn<ArrayList<String>, String>(listColNames.get(i));
+				col.setCellValueFactory(val -> new SimpleStringProperty(val.getValue().get(j)));
+				tableResult.getColumns().add(col);
+				System.out.println("Column [" + i + "] ");
+			}
+
+			/********************************
+			 * TABLE DATA
+			 ********************************/
+			
+			ObservableList<ArrayList<String>> data = FXCollections.observableArrayList();
+			for (int j = 0; j < listRows.size(); j++) {
+				ArrayList<String> row = listRows.get(j);
+				System.out.println("Row [" +(j+1)+"] added " + row);
+				data.add(row);	
+			}
+		
+			tableResult.setItems(data);
+			return tableResult;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Error while convert to table");
+		}
+		
+		return null;
+	}
+	
+	public void convertResult2ArrayList(ResultSet r, ArrayList<ArrayList<String>> outListRows, ArrayList<String> outListColNames) {
+		try {
+			/*
+			 * COLUMN NAMES
+			 */
+			outListColNames.clear();
+			for (int i = 0; i < r.getMetaData().getColumnCount(); i++) {
+				outListColNames.add(r.getMetaData().getColumnName(i+1));
+			}
+			
+			/*
+			 * ROWS OF RESULTS
+			 */
+			outListRows.clear();
+			while (r.next()) {
+				ArrayList< String> row = new ArrayList<>();
+				for (int i = 0; i < outListColNames.size(); i++) {
+					row.add(r.getString(i+1));
+				}
+				outListRows.add(row);
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Error while converting query-result to list");
+		}
+	}
+
 
 	/************************************************************************************************
 	 * THE 20 QUERIES
@@ -573,13 +648,7 @@ SELECT B.actor_name, COUNT(DISTINCT A.movie_id) as times_of_coplaying
 FROM movie.movieactorrel A, movie.movieactorrel B
 WHERE A.movie_id = B.movie_id AND UPPER(A.actor_name) = UPPER('$A') AND UPPER(B.actor_name) <> UPPER('$A')
 GROUP BY (A.actor_name, B.actor_name)
-HAVING COUNT(DISTINCT A.movie_id) >= ALL
-(
-SELECT COUNT(DISTINCT A.movie_id) as times_of_coplaying
-FROM movie.movieactorrel A, movie.movieactorrel B
-WHERE A.movie_id = B.movie_id AND UPPER(A.actor_name) = UPPER('$A') AND UPPER(B.actor_name) <> UPPER('$A')
-GROUP BY (A.actor_name, B.actor_name)
-)
+ORDER BY COUNT(DISTINCT A.movie_id) DESC.
 
 
 	 */
@@ -587,14 +656,8 @@ GROUP BY (A.actor_name, B.actor_name)
 		return "SELECT B.actor_name, COUNT(DISTINCT A.movie_id) as times_of_coplaying\r\n" + 
 				"FROM movie.movieactorrel A, movie.movieactorrel B\r\n" + 
 				"WHERE A.movie_id = B.movie_id AND UPPER(A.actor_name) = UPPER('"  +actorName + "') AND UPPER(B.actor_name) <> UPPER('" + actorName + "')\r\n" + 
-				"GROUP BY (A.actor_name, B.actor_name)\r\n" + 
-				"HAVING COUNT(DISTINCT A.movie_id) >= ALL\r\n" + 
-				"(\r\n" + 
-				"SELECT COUNT(DISTINCT A.movie_id) as times_of_coplaying\r\n" + 
-				"FROM movie.movieactorrel A, movie.movieactorrel B\r\n" + 
-				"WHERE A.movie_id = B.movie_id AND UPPER(A.actor_name) = UPPER('" + actorName +  "') AND UPPER(B.actor_name) <> UPPER('" + actorName + "')\r\n" + 
-				"GROUP BY (A.actor_name, B.actor_name)\r\n" + 
-				")";
+				"GROUP BY (A.actor_name, B.actor_name)\r\n" +
+				"ORDER BY COUNT(DISTINCT A.movie_id) DESC\r\n";
 	}
 	
 	/**
@@ -633,7 +696,7 @@ GROUP BY actor_name
 
 	 */
 	public String genQuery08(int year) {
-		return "SELECT actor_name, COUNT(movie_id)\r\n" + 
+		return "SELECT actor_name, COUNT(movie_id) as movie_count\r\n" + 
 				"FROM movie.movie NATURAL JOIN movie.movieactorrel\r\n" + 
 				"WHERE year = "+ year +  "\r\n" + 
 				"GROUP BY actor_name\r\n" + 
@@ -826,7 +889,7 @@ WHERE runtime <= X AND rating >= 8
 
 
 	 */
-	public String genQuery17(String mins) {
+	public String genQuery17(int mins) {
 		return "SELECT title, year, rating, runtime\r\n" + 
 				"FROM movie.movie\r\n" + 
 				"WHERE runtime <= " + mins +" AND rating >= 8";
@@ -876,12 +939,12 @@ UPPER(story) LIKE UPPER('%X%')
 			return "";
 		}
 		
-		String s= "SELECT *\r\n" + 
+		String s= "SELECT title, year, rating, story\r\n" + 
 				"FROM movie.movie\r\n" + 
 				"WHERE\r\n" + 
-				"UPPER(story) LIKE UPPER(' " + arrKeywords[0] + "')\r\n";
+				"UPPER(story) LIKE UPPER('%" + arrKeywords[0] + "%')\r\n";
 		for (int i = 1; i < arrKeywords.length; i++) {
-			s += "AND UPPER(story) LIKE UPPER('" + arrKeywords[i] + "')\r\n";
+			s += "AND UPPER(story) LIKE UPPER('%" + arrKeywords[i] + "%')\r\n";
 		}
 		
 		return s;
